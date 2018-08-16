@@ -1,4 +1,4 @@
-package eshore.gdtel.com.restartplan;
+package com.yizhen.testsharepreference;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("eshore.gdtel.com.restartplan", appContext.getPackageName());
+        assertEquals("com.yizhen.testsharepreference", appContext.getPackageName());
     }
 }
