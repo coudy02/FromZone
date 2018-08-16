@@ -1,33 +1,32 @@
 package eshore.gdtel.com.restartplan;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.TextView;
+import android.view.Window;
 
-import eshore.gdtel.com.restartplan.helper.TestSingleton;
+public class MainActivity extends Activity {
 
-public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "Kintai";
+    private MySurfaceView mView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);// 横屏
+        requestWindowFeature(Window.FEATURE_NO_TITLE);// 去掉标题
+
+
         setContentView(R.layout.activity_main);
 
-        TextView tv_proposal = (TextView) findViewById(R.id.tv_proposal);
-
-        tv_proposal.setText("方案");
-
-
+        initUI();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        TestSingleton mSingleton = TestSingleton.getmSingleton();
-
-        Log.e("mSingleton", "mSingleton="+mSingleton);
-
+    private void initUI() {
+        Log.d(TAG, "initUI...");
+        mView = (MySurfaceView) findViewById(R.id.mView);
     }
+
 }

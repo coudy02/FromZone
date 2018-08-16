@@ -1,16 +1,21 @@
 package com.yizhen.testokhttp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,8 +25,15 @@ import com.yizhen.testokhttp.bean.BodyData_version;
 import com.yizhen.testokhttp.json.JSONUtil;
 import com.yizhen.testokhttp.utils.LogUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.Channel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private String MJson ;
 
+    private ProgressBar progressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,15 +85,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         img_downPic = findViewById(R.id.img_downPic);
         btn_toDownLoad = findViewById(R.id.btn_toDownLoad);
         btn_toDownLoad.setOnClickListener(this);
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
 
         executors = Executors.newSingleThreadExecutor();
         initOkHttpClient();
 //        method_get();
 //        method_post();
 //        method_downPic();
-//        method_upLoadFile();
-        method_post_SSL();
+        method_upLoadFile();
+//        method_post_SSL();
 //        method_post_SSL_2();
+
+//        method_apk();
     }
 
     Handler mHandler = new Handler(){
@@ -102,6 +120,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 case FAIL_PIC:{
 
+                    break;
+                }
+                case 1008:{
+                    progressBar.setVisibility(View.GONE);
                     break;
                 }
             }
@@ -206,7 +228,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Headers headers = Headers.of(headerMap);
 
-
         Request request = new Request.Builder()
                 .headers(headers)
 //                .addHeader("Content-Length", file.length()+"")
@@ -222,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mOkHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-
+                LogUtil.setLog(null, "上传返回", "失败");
             }
 
             @Override
@@ -232,6 +253,87 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+
+    // http://ucan.25pp.com/Wandoujia_web_seo_baidu_homepage.apk
+    /**
+     * get 方法 apk包
+     */
+    private void method_apk() {
+
+        String picUrl = "http://ucan.25pp.com/Wandoujia_web_seo_baidu_homepage.apk";
+
+        Request request = new Request.Builder().url(picUrl).build();
+        LogUtil.setLog(null, "pic_request=", request.toString());
+        progressBar.setVisibility(View.VISIBLE);
+        mOkHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+
+
+                byte[] apkByte = response.body().bytes();
+                LogUtil.setLog(null, "apkByte=", apkByte.length);
+//                Message msg = new Message();
+//                msg.what = SUCCESS_PIC;
+//                msg.obj = apkByte;
+//                mHandler.sendMessage(msg);
+
+
+
+                InputStream is = new ByteArrayInputStream(apkByte);
+                File file = new File(Environment.getExternalStorageDirectory(), "douban.apk");
+//                if(file.exists()){
+//                    file.delete();
+//                } else {
+//                    file = new File(Environment.getExternalStorageDirectory(), "douban.apk");
+//                }
+                FileOutputStream fos = new FileOutputStream(file);
+                byte[] bytes = new byte[1024];
+                while(is.read(bytes) > 0){
+                    fos.write(bytes, 0, bytes.length);
+                }
+                is.close();
+                fos.close();
+
+                mHandler.sendEmptyMessage(1008);
+                // 安装
+                Intent apkintent = new Intent(Intent.ACTION_VIEW);
+                apkintent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                LogUtil.setLog(null, "file", file.getAbsolutePath());
+                Uri puri = Uri.fromFile(file);
+                apkintent.setDataAndType(puri,
+                        "application/vnd.android.package-archive");
+                startActivity(apkintent);
+            }
+        });
+    }
+//
+//    //打开APK程序代码
+//
+//    public void openFile(File file, Context var1) {
+//        Intent var2 = new Intent();
+//        var2.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        var2.setAction(Intent.ACTION_VIEW);
+//        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N){
+//            Uri uriForFile = FileProvider.getUriForFile(MainActivity.this, "com.kaiguangshanpin.FileProvider", file);
+//            var2.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//            var2.setDataAndType(uriForFile,  "application/vnd.android.package-archive");
+//        }else{
+////            var2.setDataAndType(Uri.fromFile(file), getMIMEType(file));
+//        }
+//        try {
+//            var1.startActivity(var2);
+//        } catch (Exception var5) {
+//            var5.printStackTrace();
+//            Toast.makeText(var1, "没有找到打开此类文件的程序", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+
 
     /**
      * get 方法 下载一张图片你

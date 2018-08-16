@@ -35,6 +35,13 @@ public class CameraActivity extends AppCompatActivity {
      */
     private TextureView textureView;
 
+    /**
+     *
+     03-14 17:43:19.220 24450-24450/com.yizhen.testcamera E/HW-JPEG-DEC: [HME_JPEG_DEC_Delete](3321): HME_JPEG_DEC_Delete: decoder_ctx=null
+     03-14 17:43:19.303 24450-24450/com.yizhen.testcamera E/Camera: Camera new cameraInitNormal:0
+     03-14 17:43:23.621 1262-1459/? E/HwCHRWebMonitor: running processName=com.yizhen.testcamera
+     *
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +52,24 @@ public class CameraActivity extends AppCompatActivity {
 
         applyCameraPermission();
 
-        textureViewType();
+//        textureViewType();
+
+
+        try {
+            mCamera = mCamera.open();
+            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
+                @Override
+                public void onPreviewFrame(byte[] data, Camera camera) {
+                    Log.e("zhen", "data="+data.length);
+                }
+            });
+
+//                    mCamera.setPreviewTexture(textureView.getSurfaceTexture());
+            mCamera.startPreview();
+
+        } catch (Exception e) {
+            Toast.makeText(CameraActivity.this, "相机打开失败", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
